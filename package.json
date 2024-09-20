@@ -1,0 +1,24 @@
+{
+  "name": "aws-lambda-functions-to-expressjs",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --loader ts-node/esm src/index.ts"
+  },
+  "author": "50ra4",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "12.1.0",
+    "dotenv": "16.4.5",
+    "express": "4.21.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.145",
+    "@types/express": "4.17.21",
+    "@types/node": "22.5.5",
+    "ts-node": "10.9.2",
+    "typescript": "5.6.2"
+  }
+}
