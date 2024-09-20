@@ -27,7 +27,7 @@ const createTargetHandler =
   (target: Target): express.RequestHandler =>
   async (req, res, next) => {
     const pathParameters = req.params;
-    const queryStringParameters = req.params;
+    const queryStringParameters = req.query;
     const body = req.body;
     const event = { pathParameters, queryStringParameters, body };
 
