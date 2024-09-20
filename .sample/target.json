@@ -5,7 +5,7 @@
     "file": ".sample/foo.mjs"
   },
   {
-    "endpoint": "/foo/:id",
+    "endpoint": "/foo/{id}",
     "method": "GET",
     "file": ".sample/fooById.mjs"
   },

@@ -14,6 +14,7 @@ const getOptions = () =>
       'Specify express.js port number.',
       '3000',
     )
+    .option('-d, --debug', 'Display information for debug.', false)
     .parse(process.argv)
     .opts();
 
@@ -24,20 +25,23 @@ type Target = {
 };
 
 const createTargetHandler =
-  (target: Target): express.RequestHandler =>
+  (target: Target, isDebug?: boolean): express.RequestHandler =>
   async (req, res, next) => {
     const pathParameters = req.params;
-    const queryStringParameters = req.params;
+    const queryStringParameters = req.query;
     const body = req.body;
     const event = { pathParameters, queryStringParameters, body };
 
     const { file, method, endpoint } = target;
     const filepath = resolve(file);
 
-    console.log(`[${method}] ${endpoint} called.`, event, {
-      ...target,
-      filepath,
-    });
+    if (isDebug) {
+      console.log(`[${method}] ${endpoint} called.`, {
+        ...event,
+        ...target,
+        filepath,
+      });
+    }
 
     try {
       if (!existsSync(filepath)) {
@@ -65,13 +69,18 @@ const errorHandler: express.ErrorRequestHandler = (err, _req, res) => {
 const main = async () => {
   const port = +getOptions()['port'];
   const templatePath: string = resolve(getOptions()['template']);
+  const isDebug = !!getOptions()['debug'];
 
   if (!existsSync(templatePath)) {
     throw new Error(`not found template file.(${templatePath})`);
   }
 
   const targets: Target[] = JSON.parse(readFileSync(templatePath, 'utf-8'));
-  console.info('==== targets', targets);
+
+  console.info(
+    '==== targets ====',
+    targets.map(({ endpoint, method }) => `[${method}] ${endpoint}`),
+  );
 
   const app: express.Express = express();
   app.get('/', (_req, res) => {
@@ -79,26 +88,27 @@ const main = async () => {
   });
 
   targets.forEach((target) => {
-    const handler = createTargetHandler(target);
+    const handler = createTargetHandler(target, isDebug);
 
     const { method, endpoint } = target;
-    // FIXME: endpointを"/foo/{id}"から"/foo/:id"に変更する
+    // e.g.) "/foo/{id}"->"/foo/:id"
+    const route = endpoint.replace(/{(\w+)}/g, ':$1');
 
     switch (method) {
       case 'GET':
-        app.get(endpoint, handler);
+        app.get(route, handler);
         break;
       case 'POST':
-        app.post(endpoint, handler);
+        app.post(route, handler);
         break;
       case 'PATCH':
-        app.patch(endpoint, handler);
+        app.patch(route, handler);
         break;
       case 'PUT':
-        app.put(endpoint, handler);
+        app.put(route, handler);
         break;
       case 'DELETE':
-        app.delete(endpoint, handler);
+        app.delete(route, handler);
         break;
       default:
         console.warn('not match target.', target);
