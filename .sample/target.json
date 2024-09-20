@@ -13,5 +13,10 @@
     "endpoint": "/bar",
     "method": "POST",
     "file": ".sample/bar.mjs"
+  },
+  {
+    "endpoint": "/error",
+    "method": "GET",
+    "file": ".sample/error.mjs"
   }
 ]

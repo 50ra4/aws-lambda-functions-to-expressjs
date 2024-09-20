@@ -50,7 +50,7 @@ const createTargetHandler =
       }
 
       const payload = await handler(event);
-      res.status(200).send(payload);
+      res.status(200).json(payload);
     } catch (error) {
       console.error('failed handler.', error, target, event);
       next(error);
@@ -59,7 +59,7 @@ const createTargetHandler =
 
 const errorHandler: express.ErrorRequestHandler = (err, _req, res) => {
   console.error(err);
-  res.status(500).send({ message: 'something wrong.' });
+  res.status(500).json({ message: 'something wrong.' });
 };
 
 const main = async () => {
