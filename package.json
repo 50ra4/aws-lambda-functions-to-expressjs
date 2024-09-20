@@ -1,10 +1,11 @@
 {
   "name": "aws-lambda-functions-to-expressjs",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "node --loader ts-node/esm src/index.ts"
   },
   "author": "50ra4",
   "license": "MIT",
