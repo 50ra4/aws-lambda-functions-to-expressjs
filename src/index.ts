@@ -82,23 +82,24 @@ const main = async () => {
     const handler = createTargetHandler(target);
 
     const { method, endpoint } = target;
-    // FIXME: endpointを"/foo/{id}"から"/foo/:id"に変更する
+    // e.g.) "/foo/{id}"->"/foo/:id"
+    const route = endpoint.replace(/{(\w+)}/g, ':$1');
 
     switch (method) {
       case 'GET':
-        app.get(endpoint, handler);
+        app.get(route, handler);
         break;
       case 'POST':
-        app.post(endpoint, handler);
+        app.post(route, handler);
         break;
       case 'PATCH':
-        app.patch(endpoint, handler);
+        app.patch(route, handler);
         break;
       case 'PUT':
-        app.put(endpoint, handler);
+        app.put(route, handler);
         break;
       case 'DELETE':
-        app.delete(endpoint, handler);
+        app.delete(route, handler);
         break;
       default:
         console.warn('not match target.', target);
