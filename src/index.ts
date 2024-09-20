@@ -14,6 +14,7 @@ const getOptions = () =>
       'Specify express.js port number.',
       '3000',
     )
+    .option('-d, --debug', 'Display information for debug.', false)
     .parse(process.argv)
     .opts();
 
@@ -24,7 +25,7 @@ type Target = {
 };
 
 const createTargetHandler =
-  (target: Target): express.RequestHandler =>
+  (target: Target, isDebug?: boolean): express.RequestHandler =>
   async (req, res, next) => {
     const pathParameters = req.params;
     const queryStringParameters = req.query;
@@ -34,10 +35,13 @@ const createTargetHandler =
     const { file, method, endpoint } = target;
     const filepath = resolve(file);
 
-    console.log(`[${method}] ${endpoint} called.`, event, {
-      ...target,
-      filepath,
-    });
+    if (isDebug) {
+      console.log(`[${method}] ${endpoint} called.`, {
+        ...event,
+        ...target,
+        filepath,
+      });
+    }
 
     try {
       if (!existsSync(filepath)) {
@@ -65,13 +69,18 @@ const errorHandler: express.ErrorRequestHandler = (err, _req, res) => {
 const main = async () => {
   const port = +getOptions()['port'];
   const templatePath: string = resolve(getOptions()['template']);
+  const isDebug = !!getOptions()['debug'];
 
   if (!existsSync(templatePath)) {
     throw new Error(`not found template file.(${templatePath})`);
   }
 
   const targets: Target[] = JSON.parse(readFileSync(templatePath, 'utf-8'));
-  console.info('==== targets', targets);
+
+  console.info(
+    '==== targets ====',
+    targets.map(({ endpoint, method }) => `[${method}] ${endpoint}`),
+  );
 
   const app: express.Express = express();
   app.get('/', (_req, res) => {
@@ -79,7 +88,7 @@ const main = async () => {
   });
 
   targets.forEach((target) => {
-    const handler = createTargetHandler(target);
+    const handler = createTargetHandler(target, isDebug);
 
     const { method, endpoint } = target;
     // e.g.) "/foo/{id}"->"/foo/:id"
