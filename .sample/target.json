@@ -1,0 +1,17 @@
+[
+  {
+    "endpoint": "/foo",
+    "method": "GET",
+    "file": ".sample/foo.mjs"
+  },
+  {
+    "endpoint": "/foo/:id",
+    "method": "GET",
+    "file": ".sample/fooById.mjs"
+  },
+  {
+    "endpoint": "/bar",
+    "method": "POST",
+    "file": ".sample/bar.mjs"
+  }
+]

@@ -23,7 +23,46 @@ type Target = {
   file: string;
 };
 
-const main = () => {
+const createTargetHandler =
+  (target: Target): express.RequestHandler =>
+  async (req, res, next) => {
+    const pathParameters = req.params;
+    const queryStringParameters = req.params;
+    const body = req.body;
+    const event = { pathParameters, queryStringParameters, body };
+
+    const { file, method, endpoint } = target;
+    const filepath = resolve(file);
+
+    console.log(`[${method}] ${endpoint} called.`, event, {
+      ...target,
+      filepath,
+    });
+
+    try {
+      if (!existsSync(filepath)) {
+        throw new Error(`not found file.(${filepath})`);
+      }
+
+      const { handler } = await import(filepath);
+      if (!handler) {
+        throw new Error(`not found handler.(${filepath})`);
+      }
+
+      const payload = await handler(event);
+      res.status(200).send(payload);
+    } catch (error) {
+      console.error('failed handler.', error, target, event);
+      next(error);
+    }
+  };
+
+const errorHandler: express.ErrorRequestHandler = (err, _req, res) => {
+  console.error(err);
+  res.status(500).send({ message: 'something wrong.' });
+};
+
+const main = async () => {
   const port = +getOptions()['port'];
   const templatePath: string = resolve(getOptions()['template']);
 
@@ -39,13 +78,39 @@ const main = () => {
     res.send('Hello World!');
   });
 
+  targets.forEach((target) => {
+    const handler = createTargetHandler(target);
+
+    const { method, endpoint } = target;
+    // FIXME: endpointを"/foo/{id}"から"/foo/:id"に変更する
+
+    switch (method) {
+      case 'GET':
+        app.get(endpoint, handler);
+        break;
+      case 'POST':
+        app.post(endpoint, handler);
+        break;
+      case 'PATCH':
+        app.patch(endpoint, handler);
+        break;
+      case 'PUT':
+        app.put(endpoint, handler);
+        break;
+      case 'DELETE':
+        app.delete(endpoint, handler);
+        break;
+      default:
+        console.warn('not match target.', target);
+        break;
+    }
+  });
+
+  app.use(errorHandler);
+
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
   });
 };
 
-try {
-  main();
-} catch (error) {
-  console.error(error);
-}
+main().catch((e) => console.error(e));
